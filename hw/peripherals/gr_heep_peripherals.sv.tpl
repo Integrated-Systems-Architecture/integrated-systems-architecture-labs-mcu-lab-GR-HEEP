@@ -51,7 +51,7 @@ module gr_heep_peripherals (
     .obi_req_i(gr_heep_slave_req_i[0].req),
     .obi_we_i(gr_heep_slave_req_i[0].we),
     .obi_be_i(gr_heep_slave_req_i[0].be),
-    .obi_addr_i(gr_heep_slave_req_i[0].addr),
+    .obi_addr_i(gr_heep_slave_req_i[0].addr - core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS),
     .obi_wdata_i(gr_heep_slave_req_i[0].wdata),
     .obi_gnt_o(gr_heep_slave_resp_o[0].gnt),
     .obi_rvalid_o(gr_heep_slave_resp_o[0].rvalid),
