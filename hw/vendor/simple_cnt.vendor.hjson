@@ -8,7 +8,7 @@
 
   upstream: {
     url: "https://github.com/Integrated-Systems-Architecture/simple_cnt.git", // URL of the upstream repository
-    rev: "v1.1.0", // Revision of the upstream repository (branch, tag or commit)
+    rev: "v1.1.1", // Revision of the upstream repository (branch, tag or commit)
   },
 
 }
