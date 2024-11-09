@@ -54,6 +54,10 @@ ${pad.x_heep_system_interface}
   obi_req_t  [ExtXbarNmasterRnd-1:0] gr_heep_master_req;
   obi_resp_t [ExtXbarNmasterRnd-1:0] gr_heep_master_resp;
 
+  // External slave ports
+  obi_req_t  [ExtXbarNSlaveRnd-1:0] ext_slave_req;
+  obi_resp_t [ExtXbarNSlaveRnd-1:0] ext_slave_resp;
+
   // X-HEEP external peripheral master ports
   reg_req_t heep_peripheral_req;
   reg_rsp_t heep_peripheral_rsp;
@@ -251,21 +255,72 @@ ${pad.core_v_mini_mcu_bonding}
   gr_heep_peripherals u_gr_heep_peripherals (
     .clk_i (clk_i),
     .rst_ni (rst_nin_sync),
-    .ext_peripheral_slave_req_i (ext_slave_req),
-    .ext_peripheral_slave_resp_o (ext_slave_resp),
-    .ext_ao_peripheral_slave_req_o (heep_peripheral_req),
-    .ext_ao_peripheral_slave_resp_i (heep_peripheral_resp),
-    .ext_
+    .gr_heep_slave_req_i(ext_slave_req[0]),
+    .gr_heep_slave_resp_o(ext_slave_resp[0]),
+    .gr_heep_peripheral_req_i(heep_peripheral_req),
+    .gr_heep_peripheral_rsp_o(heep_peripheral_rsp),
+    .gr_heep_peripheral_int_o(ext_int_vector[0])
   );
-  
+
+  // Unused signals
+  // --------------
+  assign gr_heep_master_req = '0;
+  assign ext_int_vector[11:1] = '0;
+
+  localparam int unsigned IdxWidth = cf_math_pkg::idx_width(ExtXbarNSlave);
+
+  // External BUS
+  // ------------
+  ext_bus #(
+    .EXT_XBAR_NMASTER (ExtXbarNMasterRnd),
+    .EXT_XBAR_NSLAVE  (ExtXbarNSlaveRnd)
+  ) u_ext_bus (
+    .clk_i (clk_i),
+    .rst_ni (rst_nin_sync),
+
+    // Address map
+    .addr_map_i(ExtSlaveAddrRules),
+    .default_idx_i(ExtSlaveDefaultIdx[IdxWidth-1:0]),
+
+    // X-HEEP master ports
+    .heep_core_instr_req_i(heep_core_instr_req),
+    .heep_core_instr_resp_o(heep_core_instr_rsp),
+
+    .heep_core_data_req_i(heep_core_data_req),
+    .heep_core_data_resp_o(heep_core_data_rsp),
+
+    .heep_debug_master_req_i(heep_debug_master_req),
+    .heep_debug_master_resp_o(heep_debug_master_rsp),
+
+    .heep_dma_read_req_i(heep_dma_read_req),
+    .heep_dma_read_resp_o(heep_dma_read_rsp),
+
+    .heep_dma_write_req_i(heep_dma_write_req),
+    .heep_dma_write_resp_o(heep_dma_write_rsp),
+
+    .heep_dma_addr_req_i(heep_dma_addr_req),
+    .heep_dma_addr_resp_o(heep_dma_addr_rsp),
+
+    // X-HEEP master ports
+    .ext_master_req_i(gr_heep_master_req),
+    .ext_master_resp_o(),
+
+    // X-HEEP slave ports
+    .heep_slave_req_o(heep_slave_req),
+    .heep_slave_resp_i(heep_slave_rsp),
+
+    // External slave ports
+    .ext_slave_req_o(ext_slave_req),
+    .ext_slave_resp_i(ext_slave_resp)
+
+  );
+
   // External peripherals bus
   // ------------------------
 
 
   // External interrupts
   // -------------------
-
-  assign ext_int_vector = '0;
 
   // Pad ring
   // --------
