@@ -248,8 +248,16 @@ ${pad.core_v_mini_mcu_bonding}
 
   // External peripherals
   // --------------------
-
-
+  gr_heep_peripherals u_gr_heep_peripherals (
+    .clk_i (clk_i),
+    .rst_ni (rst_nin_sync),
+    .ext_peripheral_slave_req_i (ext_slave_req),
+    .ext_peripheral_slave_resp_o (ext_slave_resp),
+    .ext_ao_peripheral_slave_req_o (heep_peripheral_req),
+    .ext_ao_peripheral_slave_resp_i (heep_peripheral_resp),
+    .ext_
+  );
+  
   // External peripherals bus
   // ------------------------
 
