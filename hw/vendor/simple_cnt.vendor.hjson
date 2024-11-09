@@ -1,14 +1,37 @@
-// Copyright 2024 Politecnico di Torino
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+// Copyright 2024 Politecnico di Torino.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 2.0 (the "License"); you may not use this file except in
+// compliance with the License. You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-2.0. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
+//
+// File: simple_cnt.vendor.hjson
+// Author(s):
+//   Luigi Giuffrida
+// Date: 09/11/2024
+// Description: Vendor configuration file for the simple counter
 
 {
+  // Name and target directory for the vendored IP
   name: "simple_cnt",
   target_dir: "simple_cnt",
 
+  // Upstream repository information
   upstream: {
     url: "https://github.com/Integrated-Systems-Architecture/simple_cnt.git", // URL of the upstream repository
-    rev: "v1.1.0", // Revision of the upstream repository (branch, tag or commit)
+    rev: "v1.1.1", // Revision of the upstream repository (branch, tag or commit)
   },
 
+  // Files to exclude from the local copy of the vendored IP
+  exclude_from_upstream: [
+    "tb",
+    "util",
+    ".gitignore",
+    "README.md",
+    "fusesoc.conf",
+    "makefile",
+  ],
 }
