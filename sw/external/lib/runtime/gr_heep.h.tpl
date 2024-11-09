@@ -28,10 +28,10 @@ extern "C" {
 
 % for a_slave in slaves:
 
-// ${a_slave['name']}
-#define ${a_slave['name']}StartAddr = EXT_SLAVE_START_ADDRESS + 0x${a_slave['offset']}
-#define ${a_slave['name']}Size = 0x${a_slave['size']}
-#define ${a_slave['name']}EndAddr = ${a_slave['name']}StartAddr + 0x${a_slave['size']}
+// ${a_slave['SCREAMING_NAME']}
+#define ${a_slave['SCREAMING_NAME']}_START_ADDRESS EXT_SLAVE_START_ADDRESS + 0x${a_slave['offset']}
+#define ${a_slave['SCREAMING_NAME']}_SIZE 0x${a_slave['size']}
+#define ${a_slave['SCREAMING_NAME']}_END_ADDRESS ${a_slave['SCREAMING_NAME']}_START_ADDRESS + 0x${a_slave['size']}
 % endfor
 
 % endif
@@ -43,10 +43,10 @@ extern "C" {
 
 % for a_slave in peripherals:
 
-// ${a_slave['name']}
-#define ${a_slave['name']}StartAddr = EXT_PERIPHERAL_START_ADDRESS + 0x${a_slave['offset']}
-#define ${a_slave['name']}Size = 0x${a_slave['size']}
-#define ${a_slave['name']}EndAddr = ${a_slave['name']}StartAddr + 0x${a_slave['size']}
+// ${a_slave['SCREAMING_NAME']}
+#define ${a_slave['SCREAMING_NAME']}_PERIPH_START_ADDRESS EXT_PERIPHERAL_START_ADDRESS + 0x${a_slave['offset']}
+#define ${a_slave['SCREAMING_NAME']}_PERIPH_SIZE 0x${a_slave['size']}
+#define ${a_slave['SCREAMING_NAME']}_PERIPH_END_ADDRESS ${a_slave['SCREAMING_NAME']}_PERIPH_START_ADDRESS + 0x${a_slave['size']}
 % endfor
 
 % endif
