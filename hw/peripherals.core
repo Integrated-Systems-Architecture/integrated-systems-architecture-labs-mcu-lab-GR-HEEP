@@ -19,7 +19,7 @@ filesets:
     - openhwgroup.org:systems:core-v-mini-mcu
     - x-heep::packages
     - polito:gr_heep:packages
-    - polito:isa-lab:cnt:1.0.0
+    - polito:isa-lab:cnt
     files:
     - peripherals/gr_heep_peripherals.sv
     file_type: systemVerilogSource
@@ -35,5 +35,3 @@ targets:
       - "!target_format ? (!target_lint ? (rtl))"
       - target_format ? (rtl-format)
       - target_lint ? (rtl-format)
-
-
