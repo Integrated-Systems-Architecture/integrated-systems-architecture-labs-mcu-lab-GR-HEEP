@@ -8,28 +8,26 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 //
-// File: simple_cnt.vendor.hjson
+// File: cnt_obi_pkg.sv
 // Author(s):
-//   Luigi Giuffrida
+//   Michele Caon
 // Date: 10/11/2024
-// Description: Vendor file for the example counter peripheral
+// Description: OBI interface definitions
 
-{
-  # Name and target directory for the vendored IP
-  name: "simple_cnt",
-  target_dir: "simple_cnt",
+package cnt_obi_pkg;
 
-  # Upstream repository information
-  upstream: {
-    url: "https://github.com/Integrated-Systems-Architecture/simple_cnt.git", // URL of the upstream repository
-    rev: "v1.2.0", // Revision of the upstream repository (branch, tag or commit)
-  },
+  typedef struct packed {
+    logic        req;
+    logic        we;
+    logic [3:0]  be;
+    logic [31:0] addr;
+    logic [31:0] wdata;
+  } obi_req_t;
 
-  # Files to exclude from the local copy
-  exclude_from_upstream: [
-    "tb",
-    "util",
-    "fusesoc.conf",
-    "makefile",
-  ],
-}
+  typedef struct packed {
+    logic        gnt;
+    logic        rvalid;
+    logic [31:0] rdata;
+  } obi_resp_t;
+
+endpackage

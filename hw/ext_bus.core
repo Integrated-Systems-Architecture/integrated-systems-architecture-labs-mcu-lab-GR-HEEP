@@ -9,7 +9,6 @@ CAPI=2:
 # Date: 09/11/2024
 # Description: corefile for GR-HEEP external bus
 
-
 name: polito:gr_heep:ext_bus
 description: GR-HEEP external bus
 
@@ -19,7 +18,6 @@ filesets:
     - openhwgroup.org:systems:core-v-mini-mcu
     - x-heep::packages
     - polito:gr_heep:packages
-    - polito:isa-lab:cnt:1.0.0
     files:
     - external-bus/ext_xbar.sv
     - external-bus/ext_bus.sv
