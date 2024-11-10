@@ -125,7 +125,7 @@ all: gr-heep-gen
 ## X-HEEP MCU system
 .PHONY: mcu-gen
 mcu-gen: $(MCU_GEN_LOCK)
-$(MCU_GEN_LOCK): $(MCU_CFG) $(PAD_CFG) $(EXT_PAD_CFG) | $(BUILD_DIR)/
+$(MCU_GEN_LOCK): $(MCU_CFG_PERIPHERALS) $(PAD_CFG) $(EXT_PAD_CFG) | $(BUILD_DIR)/
 	@echo "### Building X-HEEP MCU..."
 	$(MAKE) -f $(XHEEP_MAKE) mcu-gen
 	touch $@
@@ -140,7 +140,10 @@ gr-heep-gen-force:
 ## Generate gr-HEEP files
 .PHONY: gr-heep-gen
 gr-heep-gen: $(GR_HEEP_GEN_LOCK)
-$(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK)
+$(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK) \
+		$(ROOT_DIR)/hw/pad-ring/pad_ring.sv.tpl $(ROOT_DIR)/tb/tb_util.svh.tpl \
+		hw/packages/gr_heep_pkg.sv.tpl hw/peripherals/gr_heep_peripherals.sv.tpl \
+		sw/external/lib/runtime/gr_heep.h.tpl | $(BUILD_DIR)/
 	@echo "### Generating gr-HEEP top and pad rings..."
 	python3 $(XHEEP_DIR)/util/mcu_gen.py $(MCU_GEN_OPTS) \
 		--outdir $(ROOT_DIR)/hw/top/ \

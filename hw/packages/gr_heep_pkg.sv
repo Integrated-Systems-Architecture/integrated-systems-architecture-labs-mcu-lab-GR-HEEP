@@ -17,9 +17,9 @@ package gr_heep_pkg;
   // ---------------
 
   // CPU
-  localparam int unsigned CpuCorevPulp = 32'd1;
-  localparam int unsigned CpuCorevXif = 32'd1;
-  localparam int unsigned CpuFpu = 32'd1;
+  localparam int unsigned CpuCorevPulp = 32'd0;
+  localparam int unsigned CpuCorevXif = 32'd0;
+  localparam int unsigned CpuFpu = 32'd0;
   localparam int unsigned CpuRiscvZfinx = 32'd0;
 
   // SPC
@@ -81,18 +81,18 @@ package gr_heep_pkg;
 
   // Memory map
   // ----------
-  // SimpleCnt
-  localparam int unsigned SimpleCntPeriphIdx = 32'd0;
-  localparam logic [31:0] SimpleCntPeriphStartAddr = EXT_PERIPHERAL_START_ADDRESS + 32'h0;
-  localparam logic [31:0] SimpleCntPeriphSize = 32'h4096;
-  localparam logic [31:0] SimpleCntPeriphEndAddr = SimpleCntStartAddr + 32'h4096;
+  // SimpleCntCtl
+  localparam int unsigned SimpleCntCtlPeriphIdx = 32'd0;
+  localparam logic [31:0] SimpleCntCtlPeriphStartAddr = EXT_PERIPHERAL_START_ADDRESS + 32'h0;
+  localparam logic [31:0] SimpleCntCtlPeriphSize = 32'h4096;
+  localparam logic [31:0] SimpleCntCtlPeriphEndAddr = SimpleCntCtlStartAddr + 32'h4096;
 
   // External peripherals address map
   localparam addr_map_rule_t [ExtPeriphNSlave-1:0] ExtPeriphAddrRules = '{
       '{
-          idx: SimpleCntPeriphIdx,
-          start_addr: SimpleCntPeriphStartAddr,
-          end_addr: SimpleCntPeriphEndAddr
+          idx: SimpleCntCtlPeriphIdx,
+          start_addr: SimpleCntCtlPeriphStartAddr,
+          end_addr: SimpleCntCtlPeriphEndAddr
       }
   };
 

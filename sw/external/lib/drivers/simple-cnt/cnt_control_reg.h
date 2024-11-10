@@ -1,0 +1,1 @@
+../../../../../hw/vendor/simple_cnt/sw/cnt_control_reg.h
