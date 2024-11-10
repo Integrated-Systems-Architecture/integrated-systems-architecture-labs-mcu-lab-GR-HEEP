@@ -22,6 +22,7 @@ filesets:
   # RTL description
   rtl:
     files:
+    - hw/packages/cnt_obi_pkg.sv
     - hw/packages/cnt_reg_pkg.sv
     - hw/control-reg/rtl/cnt_control_reg_pkg.sv
     - hw/control-reg/rtl/cnt_control_reg_top.sv
