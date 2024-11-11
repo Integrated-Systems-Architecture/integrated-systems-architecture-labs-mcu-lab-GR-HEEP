@@ -43,30 +43,15 @@ module gr_heep_peripherals (
 );
 
   // Instantiate here the external peripherals
-
-  cnt_obi u_cnt_obi (
-    .clk_i,
-    .rst_ni,
-
-    .obi_req_i(gr_heep_slave_req_i[0].req),
-    .obi_we_i(gr_heep_slave_req_i[0].we),
-    .obi_be_i(gr_heep_slave_req_i[0].be),
-    .obi_addr_i(gr_heep_slave_req_i[0].addr - core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS),
-    .obi_wdata_i(gr_heep_slave_req_i[0].wdata),
-    .obi_gnt_o(gr_heep_slave_resp_o[0].gnt),
-    .obi_rvalid_o(gr_heep_slave_resp_o[0].rvalid),
-    .obi_rdata_o(gr_heep_slave_resp_o[0].rdata),
-
-    .reg_valid_i(gr_heep_peripheral_req_i[0].valid),
-    .reg_write_i(gr_heep_peripheral_req_i[0].write),
-    .reg_wstrb_i(gr_heep_peripheral_req_i[0].wstrb),
-    .reg_addr_i(gr_heep_peripheral_req_i[0].addr),
-    .reg_wdata_i(gr_heep_peripheral_req_i[0].wdata),
-    .reg_error_o(gr_heep_peripheral_rsp_o[0].error),
-    .reg_ready_o(gr_heep_peripheral_rsp_o[0].ready),
-    .reg_rdata_o(gr_heep_peripheral_rsp_o[0].rdata),
-
-    .tc_int_o(gr_heep_peripheral_int_o[0])
+  cnt_obi #(
+      .W (32)
+  ) u_cnt_obi (
+      .clk_i     (clk_i),
+      .rst_ni    (rst_ni),
+      .obi_req_i (gr_heep_slave_req_i[0]),
+      .obi_rsp_o (gr_heep_slave_resp_o[0]),
+      .reg_req_i (gr_heep_peripheral_req_i[0]),
+      .reg_rsp_o (gr_heep_peripheral_rsp_o[0]),
+      .tc_int_o  (gr_heep_peripheral_int_o[0])
   );
-
 endmodule
