@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "rv_plic.h"
 #include "core_v_mini_mcu.h"
-#include "simple-cnt.h"
+#include "simple_cnt.h"
 
 /**********************************/
 /* ---- FUNCTION DEFINITIONS ---- */

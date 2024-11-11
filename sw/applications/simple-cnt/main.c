@@ -3,7 +3,7 @@
 
 // Custom library headers
 #include "core_v_mini_mcu.h"
-#include "simple-cnt.h"
+#include "simple_cnt.h"
 #include "ext_irq.h"
 
 // Main body

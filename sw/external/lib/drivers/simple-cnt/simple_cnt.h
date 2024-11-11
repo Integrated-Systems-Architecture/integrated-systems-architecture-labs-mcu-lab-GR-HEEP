@@ -27,19 +27,19 @@
  * @brief Enable the counter.
  * 
  */
-inline void simple_cnt_enable();
+__attribute__ ((inline)) void simple_cnt_enable();
 
 /**
  * @brief Disable the counter.
  * 
  */
-inline void simple_cnt_disable();
+__attribute__ ((inline)) void simple_cnt_disable();
 
 /**
  * @brief Clear the counter.
  * 
  */
-inline void simple_cnt_clear();
+__attribute__ ((inline)) void simple_cnt_clear();
 
 /**
  * @brief Set the threshold value of the counter.
@@ -74,13 +74,13 @@ uint32_t simple_cnt_get_value();
  * 
  * @return true if the TC bit is set, false otherwise.
  */
-inline uint8_t simple_cnt_tc();
+__attribute__ ((inline)) uint8_t simple_cnt_tc();
 
 /**
  * @brief Clear the counter TC bit.
  * 
  */
-inline void simple_cnt_clear_tc();
+__attribute__ ((inline)) void simple_cnt_clear_tc();
 
 /**
  * @brief Counter interrupt handler.
