@@ -31,7 +31,7 @@
 
     // External peripherals
     ext_periph: {
-        simple_cnt_ctl: {
+        simple_cnt: {
             // Offset from the base address of the memory space reserved for
             // external peripherals, as defined in
             offset: "0x0000000",
