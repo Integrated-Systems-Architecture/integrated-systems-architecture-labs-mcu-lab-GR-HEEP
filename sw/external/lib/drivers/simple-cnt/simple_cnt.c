@@ -25,23 +25,23 @@
 static volatile uint8_t simple_cnt_irq_flag = 0;
 
 __attribute__ ((inline)) void simple_cnt_enable() {
-    *(volatile uint32_t *)(SIMPLE_CNT_CTL_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) |= (1 << CNT_CONTROL_CONTROL_ENABLE_BIT);
+    *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) |= (1 << CNT_CONTROL_CONTROL_ENABLE_BIT);
 }
 
 __attribute__ ((inline)) void simple_cnt_disable() {
-    *(volatile uint32_t *)(SIMPLE_CNT_CTL_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) &= ~(1 << CNT_CONTROL_CONTROL_ENABLE_BIT);
+    *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) &= ~(1 << CNT_CONTROL_CONTROL_ENABLE_BIT);
 }
 
 __attribute__ ((inline)) void simple_cnt_clear() {
-    *(volatile uint32_t *)(SIMPLE_CNT_CTL_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) |= (1 << CNT_CONTROL_CONTROL_CLEAR_BIT);
+    *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) |= (1 << CNT_CONTROL_CONTROL_CLEAR_BIT);
 }
 
 void simple_cnt_set_threshold(uint32_t threshold) {
-    *(volatile uint32_t *)(SIMPLE_CNT_CTL_PERIPH_START_ADDRESS + CNT_CONTROL_THRESHOLD_REG_OFFSET) = threshold;
+    *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_THRESHOLD_REG_OFFSET) = threshold;
 }
 
 uint32_t simple_cnt_get_threshold() {
-    return *(volatile uint32_t *)(SIMPLE_CNT_CTL_PERIPH_START_ADDRESS + CNT_CONTROL_THRESHOLD_REG_OFFSET);
+    return *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_THRESHOLD_REG_OFFSET);
 }
 
 void simple_cnt_set_value(uint32_t value) {
@@ -53,11 +53,11 @@ uint32_t simple_cnt_get_value() {
 }
 
 __attribute__ ((inline)) uint8_t simple_cnt_tc() {
-    return (*(volatile uint32_t *)(SIMPLE_CNT_CTL_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) & (1 << CNT_CONTROL_STATUS_TC_BIT)) != 0;
+    return (*(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) & (1 << CNT_CONTROL_STATUS_TC_BIT)) != 0;
 }
 
 __attribute__ ((inline)) void simple_cnt_clear_tc() {
-    *(volatile uint32_t *)(SIMPLE_CNT_CTL_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) |= (1 << CNT_CONTROL_STATUS_TC_BIT);
+    *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) |= (1 << CNT_CONTROL_STATUS_TC_BIT);
 }
 
 void simple_cnt_irq_handler() {
