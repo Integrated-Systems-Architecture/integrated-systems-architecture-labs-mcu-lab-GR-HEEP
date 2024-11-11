@@ -1,50 +1,58 @@
-// Copyright 2024 Politecnico di Torino.
-// Copyright and related rights are licensed under the Solderpad Hardware
-// License, Version 2.0 (the "License"); you may not use this file except in
-// compliance with the License. You may obtain a copy of the License at
-// http://solderpad.org/licenses/SHL-2.0. Unless required by applicable law
-// or agreed to in writing, software, hardware and materials distributed under
-// this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the
-// specific language governing permissions and limitations under the License.
+// Copyright 2022 EPFL and Politecnico di Torino.
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// File: gr_heep.h.tpl
-// Author(s):
-//   Michele Caon
-// Date: 10/11/2024
-// Description: GR-HEEP definitions
+// File: gr_heep.h
+// Author: Luigi Giuffrida, Michele Caon
+// Date: 09/11/2024
+// Description: Address map for gr_heep external peripherals.
 
-#ifndef GR_HEEP_H_
-#define GR_HEEP_H_
+#ifndef GR_HEEP_H
+#define GR_HEEP_H
 
 #ifdef __cplusplus
 extern "C" {
-#endif  // __cplusplus
+#endif // __cplusplus
 
 #include "core_v_mini_mcu.h"
 
-// MEMORY MAP
+// Number of masters and slaves on the external crossbar
+#define EXT_XBAR_NMASTER ${xbar_nmasters}
+#define EXT_XBAR_NSLAVE ${xbar_nslaves}
+
+
+// Memory map
 // ----------
-// External peripherals
-% for peripheral in peripherals:
-#define ${peripheral['name'].upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + ${hex(peripheral['offset'])})
-#define ${peripheral['name'].upper()}_SIZE ${hex(peripheral['size'])}
-#define ${peripheral['name'].upper()}_END_ADDRESS ${hex(peripheral['end_address'])}
-#define ${peripheral['name'].upper()}_IDX ${peripheral['idx']}
 
-%endfor
+% if (xbar_nslaves > 0):
 
-// External slaves
-% for slave in slaves:
-#define ${slave['name'].upper()}_START_ADDRESS (EXT_SLAVE_START_ADDRESS + ${hex(slave['offset'])})
-#define ${slave['name'].upper()}_SIZE ${hex(slave['size'])}
-#define ${slave['name'].upper()}_END_ADDRESS ${hex(slave['end_address'])}
-#define ${slave['name'].upper()}_IDX ${slave['idx']}
+% for a_slave in slaves:
 
-%endfor
+// ${a_slave['SCREAMING_NAME']}
+#define ${a_slave['SCREAMING_NAME']}_START_ADDRESS EXT_SLAVE_START_ADDRESS + 0x${a_slave['offset']}
+#define ${a_slave['SCREAMING_NAME']}_SIZE 0x${a_slave['size']}
+#define ${a_slave['SCREAMING_NAME']}_END_ADDRESS ${a_slave['SCREAMING_NAME']}_START_ADDRESS + 0x${a_slave['size']}
+% endfor
+
+% endif
+
+// Peripheral map
+// ----------
+
+% if (periph_nslaves > 0):
+
+% for a_slave in peripherals:
+
+// ${a_slave['SCREAMING_NAME']}
+#define ${a_slave['SCREAMING_NAME']}_PERIPH_START_ADDRESS EXT_PERIPHERAL_START_ADDRESS + 0x${a_slave['offset']}
+#define ${a_slave['SCREAMING_NAME']}_PERIPH_SIZE 0x${a_slave['size']}
+#define ${a_slave['SCREAMING_NAME']}_PERIPH_END_ADDRESS ${a_slave['SCREAMING_NAME']}_PERIPH_START_ADDRESS + 0x${a_slave['size']}
+% endfor
+
+% endif
 
 #ifdef __cplusplus
-}
-#endif  // __cplusplus
+} // extern "C"
+#endif // __cplusplus
 
-#endif // GR_HEEP_H_
+#endif // GR_HEEP_H

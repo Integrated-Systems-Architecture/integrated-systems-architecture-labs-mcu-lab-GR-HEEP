@@ -25,6 +25,9 @@ from mako.template import Template
 # Compile a regex to trim trailing whitespaces on lines
 re_trailws = re.compile(r"[ \t\r]+$", re.MULTILINE)
 
+def string2int(hex_json_string):
+    return (hex_json_string.split('x')[1]).split(',')[0]
+
 def CamelCase(input_string):
     # Split the input string by non-alphanumeric characters (e.g., space, hyphen, underscore)
     words = re.split(r'[^a-zA-Z0-9]+', input_string)
@@ -34,6 +37,19 @@ def CamelCase(input_string):
     camel_case = words[0].capitalize() + ''.join(word.capitalize() for word in words[1:])
     
     return camel_case
+
+def SCREAMING_SNAKE_CASE(input_string):
+    # Replace non-alphanumeric characters with underscores and handle camelCase and PascalCase
+    words = re.sub(r'([a-z])([A-Z])', r'\1_\2', input_string)  # Insert underscores between camelCase words
+    words = re.sub(r'[^a-zA-Z0-9]+', '_', words)               # Replace non-alphanumerics with underscores
+    
+    # Convert the entire string to uppercase
+    screaming_snake_case = words.upper()
+    
+    # Remove any leading or trailing underscores
+    screaming_snake_case = screaming_snake_case.strip('_')
+    
+    return screaming_snake_case
 
 
 def int2hexstr(n, nbits) -> str:
@@ -149,11 +165,12 @@ def main():
             slaves.append(
                 {
                     "name": CamelCase(a_slave),
+                    "SCREAMING_NAME": SCREAMING_SNAKE_CASE(a_slave),
                     "idx": idx,
-                    "offset": int(slave_config["offset"], 16),
-                    "size": int(slave_config["length"], 16),
-                    "end_address": int(slave_config["offset"], 16)
-                    + int(slave_config["length"], 16),
+                    "offset": string2int(slave_config["offset"]),
+                    "size": string2int(slave_config["length"]),
+                    "end_address": string2int(slave_config["offset"])
+                    + string2int(slave_config["length"]),
                 }
             )
             idx += 1
@@ -172,11 +189,12 @@ def main():
             peripherals.append(
                 {
                     "name": CamelCase(a_peripheral),
+                    "SCREAMING_NAME": SCREAMING_SNAKE_CASE(a_peripheral),
                     "idx": idx,
-                    "offset": int(peripheral_config["offset"], 16),
-                    "size": int(peripheral_config["length"], 16),
-                    "end_address": int(peripheral_config["offset"], 16)
-                    + int(peripheral_config["length"], 16),
+                    "offset": string2int(peripheral_config["offset"]),
+                    "size": string2int(peripheral_config["length"]),
+                    "end_address": string2int(peripheral_config["offset"])
+                    + string2int(peripheral_config["length"]),
                 }
             )
             idx += 1

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 // Custom library headers
-#include "gr_heep.h"
+#include "core_v_mini_mcu.h"
 
 // Main body
 // ---------
