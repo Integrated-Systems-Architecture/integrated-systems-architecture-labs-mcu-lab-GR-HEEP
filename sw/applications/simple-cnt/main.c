@@ -61,12 +61,12 @@ int main(void)
     simple_cnt_clear();
 
     // Install the counter interrupt handler and enable the counter
-    simple_cnt_irq_install();
-    simple_cnt_enable();
+    simple_cnt_irq_install(); // install the handler in X-HEEP's PLIC
+    simple_cnt_enable(); // start counting
 
-    // Enable the counter
-    simple_cnt_wait_irq();
-    simple_cnt_disable();
+    // Wait for the counter interrupt
+    simple_cnt_wait_irq(); // put CPU to sleep (clock-gating) until the interrupt is received
+    simple_cnt_disable(); // disable the counter to avoid further interrupts
     printf("IRQ received\n");
 
     // Read back the counter value
