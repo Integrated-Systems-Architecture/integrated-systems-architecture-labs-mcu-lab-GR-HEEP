@@ -22,7 +22,7 @@
   # Upstream repository information
   upstream: {
     url: "https://github.com/Integrated-Systems-Architecture/simple_cnt.git", // URL of the upstream repository
-    rev: "v1.2.0", // Revision of the upstream repository (branch, tag or commit)
+    rev: "v1.2.1", // Revision of the upstream repository (branch, tag or commit)
   },
 
   # Files to exclude from the local copy

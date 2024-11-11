@@ -205,6 +205,7 @@ verilator-run: | check-firmware .verilator-check-params
 		--boot_mode=$(BOOT_MODE) \
 		--max_cycles=$(MAX_CYCLES) \
 		--trace=true \
+		--no_err \
 		$(FUSESOC_ARGS)
 	cat $(FUSESOC_BUILD_DIR)/sim-verilator/uart.log
 

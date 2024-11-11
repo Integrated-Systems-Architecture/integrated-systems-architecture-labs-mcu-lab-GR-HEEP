@@ -143,9 +143,10 @@ targets:
     parameters_append:
     - boot_mode
     - firmware
-    - log_level
+    - tool_verilator ? (log_level)
     - max_cycles
     - trace
+    - tool_verilator ? (no_err)
     - RTL_SIMULATION=true
     - VERILATOR_VERSION
     tools:
