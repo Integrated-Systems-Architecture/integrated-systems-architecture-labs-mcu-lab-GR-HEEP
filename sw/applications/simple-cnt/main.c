@@ -3,17 +3,19 @@
 
 // Custom library headers
 #include "core_v_mini_mcu.h"
+#include "fast_intr_ctrl.h"
 #include "simple_cnt.h"
 #include "ext_irq.h"
+#include "csr.h"
 
 // Main body
 // ---------
 int main(void)
 {
-    uint32_t val = 256;
+    uint32_t val = 255;
     uint32_t ret = 0;
 
-    // Initialize external interrupts
+    // Initialize external interrupts handler(s)
     ext_irq_init();
 
     // Set the counter threshold
@@ -51,18 +53,21 @@ int main(void)
     simple_cnt_enable();
 
     // Wait for the counter to reach the threshold
-    while (!simple_cnt_tc()) {
-        // Busy waiting
-    }
-    simple_cnt_clear_tc(); // clear TC bit
-    printf("Counter reached threshold\n");
+    simple_cnt_wait_poll();
+    printf("TC set\n");
 
-    // Wait for counter interrupt
-    simple_cnt_wait();
-    printf("Counter interrupt received\n");
-
-    // Disable the counter
+    // Disable the counter and clear it
     simple_cnt_disable();
+    simple_cnt_clear();
+
+    // Install the counter interrupt handler and enable the counter
+    simple_cnt_irq_install();
+    simple_cnt_enable();
+
+    // Enable the counter
+    simple_cnt_wait_irq();
+    simple_cnt_disable();
+    printf("IRQ received\n");
 
     // Read back the counter value
     ret = simple_cnt_get_value();

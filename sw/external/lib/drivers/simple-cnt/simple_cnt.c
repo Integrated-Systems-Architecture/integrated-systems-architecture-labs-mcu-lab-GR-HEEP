@@ -20,19 +20,21 @@
 #include "gr_heep.h"
 #include "cnt_control_reg.h"
 #include "hart.h" // for wait_for_interrupt()
+#include "csr.h"
+#include "rv_plic.h"
 
 // Interrupt flag
 static volatile uint8_t simple_cnt_irq_flag = 0;
 
-__attribute__ ((inline)) void simple_cnt_enable() {
+__attribute__((inline)) void simple_cnt_enable() {
     *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) |= (1 << CNT_CONTROL_CONTROL_ENABLE_BIT);
 }
 
-__attribute__ ((inline)) void simple_cnt_disable() {
+__attribute__((inline)) void simple_cnt_disable() {
     *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) &= ~(1 << CNT_CONTROL_CONTROL_ENABLE_BIT);
 }
 
-__attribute__ ((inline)) void simple_cnt_clear() {
+__attribute__((inline)) void simple_cnt_clear() {
     *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_CONTROL_REG_OFFSET) |= (1 << CNT_CONTROL_CONTROL_CLEAR_BIT);
 }
 
@@ -44,6 +46,14 @@ uint32_t simple_cnt_get_threshold() {
     return *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_THRESHOLD_REG_OFFSET);
 }
 
+__attribute__((inline)) uint8_t simple_cnt_tc() {
+    return (*(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) & (1 << CNT_CONTROL_STATUS_TC_BIT)) != 0;
+}
+
+__attribute__((inline)) void simple_cnt_clear_tc() {
+    *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) |= (1 << CNT_CONTROL_STATUS_TC_BIT);
+}
+
 void simple_cnt_set_value(uint32_t value) {
     *(volatile uint32_t *)(SIMPLE_CNT_START_ADDRESS) = value;
 }
@@ -52,15 +62,7 @@ uint32_t simple_cnt_get_value() {
     return *(volatile uint32_t *)(SIMPLE_CNT_START_ADDRESS);
 }
 
-__attribute__ ((inline)) uint8_t simple_cnt_tc() {
-    return (*(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) & (1 << CNT_CONTROL_STATUS_TC_BIT)) != 0;
-}
-
-__attribute__ ((inline)) void simple_cnt_clear_tc() {
-    *(volatile uint32_t *)(SIMPLE_CNT_PERIPH_START_ADDRESS + CNT_CONTROL_STATUS_REG_OFFSET) |= (1 << CNT_CONTROL_STATUS_TC_BIT);
-}
-
-void simple_cnt_irq_handler() {
+void simple_cnt_irq_handler(uint32_t id) {
     // Set IRQ flag
     simple_cnt_irq_flag = 1;
 
@@ -68,10 +70,37 @@ void simple_cnt_irq_handler() {
     simple_cnt_clear_tc();
 }
 
-void simple_cnt_wait() {
-    // Wait for the kernel to complete
-    while (simple_cnt_irq_flag == 0) {
-        wait_for_interrupt();
+void simple_cnt_irq_install() {
+    // Simple counter interrupt handler (EXT_INTR_0)
+    if (plic_irq_set_priority(EXT_INTR_0, 1) != kPlicOk)
+        return -1;
+    if (plic_irq_set_enabled(EXT_INTR_0, kPlicToggleEnabled) != kPlicOk)
+        return -1;
+    if (plic_assign_external_irq_handler(EXT_INTR_0, &simple_cnt_irq_handler) != kPlicOk)
+        return -1;
+}
+
+void simple_cnt_irq_clear() {
+    // Mask interrupts before clearing previous pending IRQs
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+    simple_cnt_irq_flag = 0;
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+}
+
+void simple_cnt_wait_poll() {
+    // Wait for the TC status bit to be set
+    while (!simple_cnt_tc()) {
+        continue; // Busy waiting
     }
-    simple_cnt_irq_flag = 0; // reset counter interrupt flag
+    simple_cnt_clear_tc(); // clear TC bit
+}
+
+void simple_cnt_wait_irq() {
+    // Wait for the counter interrupt
+    while (simple_cnt_irq_flag == 0) {
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        wait_for_interrupt();
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
+    simple_cnt_irq_clear();
 }

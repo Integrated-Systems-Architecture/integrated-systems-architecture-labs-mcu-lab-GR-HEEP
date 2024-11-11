@@ -18,6 +18,7 @@
 #include "rv_plic.h"
 #include "core_v_mini_mcu.h"
 #include "simple_cnt.h"
+#include "csr.h"
 
 /**********************************/
 /* ---- FUNCTION DEFINITIONS ---- */
@@ -27,18 +28,10 @@ int ext_irq_init(void) {
     // Initialize PLIC for external interrupts
     if (plic_Init() != kPlicOk)
         return -1;
-    if (plic_irq_set_priority(EXT_INTR_0, 1) != kPlicOk)
-        return -1;
-    if (plic_irq_set_enabled(EXT_INTR_0, kPlicToggleEnabled) != kPlicOk)
-        return -1;
 
-    // Install external interrupt handler(s)
-
-    // Simple counter interrupt handler (EXT_INTR_0)
-    if (plic_assign_external_irq_handler(EXT_INTR_0, &simple_cnt_irq_handler) != kPlicOk)
-        return -1;
-
-    // Other external interrupt handlers...
+    // Enable global interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8); // mstatus.mie: globally enable machine-level interrupts
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // mie.meie: enable machine-level external interrupts
 
     // Return success
     return 0;

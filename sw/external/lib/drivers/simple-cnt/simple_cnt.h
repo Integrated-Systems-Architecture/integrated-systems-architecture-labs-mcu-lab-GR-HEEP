@@ -23,23 +23,26 @@
 /* ---- DRIVER ROUTINES ---- */
 /*****************************/
 
+// Access the counter configuration registers
+// ------------------------------------------
+
 /**
  * @brief Enable the counter.
  * 
  */
-__attribute__ ((inline)) void simple_cnt_enable();
+__attribute__((inline)) void simple_cnt_enable();
 
 /**
  * @brief Disable the counter.
  * 
  */
-__attribute__ ((inline)) void simple_cnt_disable();
+__attribute__((inline)) void simple_cnt_disable();
 
 /**
  * @brief Clear the counter.
  * 
  */
-__attribute__ ((inline)) void simple_cnt_clear();
+__attribute__((inline)) void simple_cnt_clear();
 
 /**
  * @brief Set the threshold value of the counter.
@@ -56,6 +59,22 @@ void simple_cnt_set_threshold(uint32_t threshold);
 uint32_t simple_cnt_get_threshold();
 
 /**
+ * @brief Poll the TC bit of the counter.
+ * 
+ * @return true if the TC bit is set, false otherwise.
+ */
+__attribute__((inline)) uint8_t simple_cnt_tc();
+
+/**
+ * @brief Clear the counter TC bit.
+ * 
+ */
+__attribute__((inline)) void simple_cnt_clear_tc();
+
+// Access the counter value
+// ------------------------
+
+/**
  * @brief Set the value of the counter.
  * 
  * @param value The desired counter value.
@@ -69,18 +88,8 @@ void simple_cnt_set_value(uint32_t value);
  */
 uint32_t simple_cnt_get_value();
 
-/**
- * @brief Poll the TC bit of the counter.
- * 
- * @return true if the TC bit is set, false otherwise.
- */
-__attribute__ ((inline)) uint8_t simple_cnt_tc();
-
-/**
- * @brief Clear the counter TC bit.
- * 
- */
-__attribute__ ((inline)) void simple_cnt_clear_tc();
+// Interrupt handling
+// ------------------
 
 /**
  * @brief Counter interrupt handler.
@@ -89,9 +98,30 @@ __attribute__ ((inline)) void simple_cnt_clear_tc();
 void simple_cnt_irq_handler();
 
 /**
+ * @brief Register the IRQ handler in the PLIC.
+ * 
+ */
+void simple_cnt_irq_install();
+
+/**
+ * @brief Clear previous pending IRQs
+ * 
+ */
+void simple_cnt_irq_clear();
+
+// TC event handlers
+// -----------------
+
+/**
+ * @brief Wait for the counter TC (polling).
+ *
+ */
+void simple_cnt_wait_poll();
+
+/**
  * @brief Wait for the counter interrupt.
  *
  */
-void simple_cnt_wait();
+void simple_cnt_wait_irq();
 
 #endif /* SIMPLE_CNT_HH_ */
