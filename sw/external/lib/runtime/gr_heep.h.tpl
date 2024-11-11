@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
 // File: gr_heep.h
-// Author: Luigi Giuffrida, Michele Caon
+// Author: Luigi Giuffrida
 // Date: 09/11/2024
 // Description: Address map for gr_heep external peripherals.
 
