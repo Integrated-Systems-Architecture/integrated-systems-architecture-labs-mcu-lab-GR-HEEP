@@ -64,7 +64,7 @@ LOG_LEVEL			?= LOG_NORMAL
 BOOT_MODE			?= force # jtag: wait for JTAG (DPI module), flash: boot from flash, force: load firmware into SRAM
 FIRMWARE			?= $(ROOT_DIR)/build/sw/app/main.hex
 VCD_MODE			?= 0 # QuestaSim-only - 0: no dumo, 1: dump always active, 2: dump triggered by GPIO 0
-MAX_CYCLES			?= 1000000
+MAX_CYCLES			?= 10000000
 FUSESOC_FLAGS		?=
 FUSESOC_ARGS		?=
 FUSESOC_ARGS		+= --VERILATOR_VERSION=$(VERILATOR_VERSION)
@@ -77,7 +77,8 @@ FUSESOC_BUILD_DIR			= $(shell find $(BUILD_DIR) -type d -name 'polito_gr_heep_gr
 QUESTA_SIM_DIR				= $(FUSESOC_BUILD_DIR)/sim-modelsim
 
 # Application spacific makefile
-APP_MAKE := $(wildcard sw/applications/$(PROJECT)/*akefile)
+APP_MAKE 	:= $(wildcard sw/applications/$(PROJECT)/*akefile)
+APP_PARAMS  ?=
 
 # Custom preprocessor definitions
 CDEFS ?=

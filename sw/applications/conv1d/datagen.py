@@ -1,7 +1,6 @@
 import argparse
 import os
 import numpy as np
-from torch.nn import functional as fun
 from c_gen import CFileGen
 
 
@@ -13,42 +12,77 @@ def main():
 
     # Create command line parser
     cmd_parser = argparse.ArgumentParser(
-        prog="datagen", description="Conv1d golden model.", epilog=descr
+        prog="datagen",
+        description="Conv1d golden model.", 
+        epilog=descr
     )
 
-    # Define command line options
+    # Number of input channels (N)
     cmd_parser.add_argument(
-        "--in_len", "-l", type=int, default=8, help="Length of every input channel."
+        "--in_ch", "-n",
+        type=int,
+        default=4,
+        help="Number of input channels."
     )
+
+    # Length of each input channel (L)
     cmd_parser.add_argument(
-        "--in_ch", "-n", type=int, default=4, help="Number of input channels."
+        "--in_len", "-l",
+        type=int,
+        default=8,
+        help="Length of each input channel."
     )
+
+    # Length of each filter (K)
     cmd_parser.add_argument(
-        "--k_len", "-k", type=int, default=3, help="Length of the kernel."
+        "--k_len", "-k",
+        type=int,
+        default=3,
+        help="Length of each filter."
     )
+
+    # Number of filter sets (M)
     cmd_parser.add_argument(
-        "--f_num",
+        "--k_num",
         "-f",
         type=int,
         default=1,
-        help="Number of filters (output channels).",
+        help="Number of filter sets (i.e., output channels).",
     )
+
+    # Convolution stride
     cmd_parser.add_argument(
-        "--stride", "-r", type=int, default=1, help="Stride of the convolution."
+        "--stride", "-r",
+        type=int, 
+        default=1, 
+        help="Stride of the convolution."
     )
+
+    # Convolution padding
     cmd_parser.add_argument(
-        "--padding", "-p", type=int, default=0, help="Padding of the convolution."
+        "--padding", "-p",
+        type=int, 
+        default=0, 
+        help="Padding of the convolution."
     )
+
+    # Output directory
     cmd_parser.add_argument(
         "--outdir",
         "-o",
         type=str,
-        default=os.path.dirname(__file__),
-        help="directory where to store the otuput files.",
+        default=os.path.dirname(os.path.abspath(__file__)),
+        help="Directory where to store the otuput files.",
     )
+
+    # Seed for random number generator
     cmd_parser.add_argument(
-        "--seed", "-s", type=int, help="Seed for numpy PRG (normally used for debug)."
+        "--seed", "-s",
+        type=int,
+        help="Seed for numpy PRG (normally used for debug)."
     )
+
+    # Version
     cmd_parser.add_argument(
         "--version",
         "-v",
@@ -65,20 +99,20 @@ def main():
     input_len = args.in_len
     input_ch = args.in_ch
     kernel_len = args.k_len
-    f_num = args.f_num
+    k_num = args.k_num
     stride = args.stride
     pad = args.padding
-    data_header = "data.h"
+    header_basename = "data"
 
     # Print arguments
-    print("!D convolution golden model.")
+    print("1D convolution golden model.")
     print("    R = conv1D(A, F, STRIDE, PAD)")
     print("Arguments:")
     print("- output directory: " + out_dir)
     print("- input length: " + str(input_len))
     print("- input channels: " + str(input_ch))
     print("- kernel length: " + str(kernel_len))
-    print("- number of filters: " + str(f_num))
+    print("- number of filter sets: " + str(k_num))
     print("- stride: " + str(stride))
     print("- padding: " + str(pad))
 
@@ -88,48 +122,86 @@ def main():
 
     # Input matrix A [input_len x input_ch]
     A = np.random.randint(
-        low=0, high=(2**7) - 1, size=(input_len, input_ch), dtype=np.int8
+        low=np.iinfo(np.int8).min, high=np.iinfo(np.int8).max, size=(input_ch, input_len), dtype=np.int8
     )
 
-    # Filter F [kernel_len x input_ch x f_num]
+    # Filter F [kernel_len x input_ch x k_num]
     F = np.random.randint(
-        low=0, high=(2**7) - 1, size=(kernel_len, input_ch, f_num), dtype=np.int8
+        low=np.iinfo(np.int8).min, high=np.iinfo(np.int8).max, size=(k_num, input_ch, kernel_len), dtype=np.int8
     )
 
-    # Bias B [f_num]
-    B = np.random.randint(low=0, high=(2**7) - 1, size=(f_num), dtype=np.int8)
+    # -----------------------------------------------------------------------
+    # Golden output [input_len x k_num]
+    # -----------------------------------------------------------------------
+    # Compute the number of output elements
+    output_len = (input_len - kernel_len + 2 * pad) // stride + 1
 
-    # Golden output [input_len x f_num]
-    R = np.zeros((input_len, f_num), dtype=np.int32)
-    R = fun.conv1d(A, F, stride=stride, padding=pad, bias=B)
+    # Reset the outputs
+    R = np.zeros((k_num, output_len), dtype=np.int32)
+    
+    # Loop over each set of filters (M times)
+    for m in range(k_num):
+        # Initialize an array to accumulate the convolution results for this filter set.
+        # For 'same' convolution mode, the output length is the same as the input length (L).
+        accumulated_output = np.zeros(output_len, dtype=np.int32)
+        
+        # Loop over each input channel (N channels)
+        for n in range(input_ch):
+            # Pad the input data with zeros at both ends
+            input_padded = A[n]
+            input_padded = np.pad(input_padded.astype(np.int32), (pad, pad), mode='constant', constant_values=0)
+    
+            # Perform convolution between input data[n] and filter filters[m][n].
+            # - 'valid': Returns the convolution result without zero-padding (output length is L - F + 1).
+            # NOTE: we use `correlate` instead of `convolve` because the latter flips the filter (following a common mathematical convention).
+            filter_values = F[m][n]
+            conv_result = np.correlate(input_padded, filter_values.astype(np.int32), mode='valid')
 
+            # Apply stride by slicing (subsampling) the convolution output
+            # NOTE: this is not an efficient way to apply stride, since involves wasteful computation when
+            # computing conv_result. Do NOT use this algorithm in your hardware implementation.
+            conv_strided = conv_result[::stride]
+
+            # Accumulate the convolution results from each channel.
+            accumulated_output += conv_strided[:output_len]
+        
+        # Store the accumulated convolution results for this filter set.
+        R[m] = accumulated_output
+        
+    # At this point, 'R' contains M output arrays.
+    # Each output array is the result of summing the convolutions of N input channels
+    # with their respective filters in one filter set.
+    # 'R[m]' corresponds to the output from filter set 'm'.
+
+    print("- generated input data (A, F) and golden output (R).")
+
+    # -----------------------------------------------------------------------
     # Generate C files
+    # -----------------------------------------------------------------------
+    data_gen = CFileGen(header_basename)
 
-    header_gen = CFileGen()
+    data_gen.add_comment("1D convolution data")
+    data_gen.add_comment("Input data")
+    data_gen.add_comment("A: input matrix [input_len x input_ch]")
+    data_gen.add_comment("F: filter matrix [kernel_len x input_ch x k_num]")
+    data_gen.add_comment("Output data")
+    data_gen.add_comment("R: output matrix [input_len x k_num]")
+    data_gen.add_comment("Stride: " + str(stride))
+    data_gen.add_comment("Padding: " + str(pad))
 
-    header_gen.add_comment("1D convolution data")
-    header_gen.add_comment("Input data")
-    header_gen.add_comment("A: input matrix [input_len x input_ch]")
-    header_gen.add_comment("F: filter matrix [kernel_len x input_ch x f_num]")
-    header_gen.add_comment("Output data")
-    header_gen.add_comment("R: output matrix [input_len x f_num]")
-    header_gen.add_comment("Stride: " + str(stride))
-    header_gen.add_comment("Padding: " + str(pad))
+    data_gen.add_macro("INPUT_LEN", str(input_len))
+    data_gen.add_macro("INPUT_CH", str(input_ch))
+    data_gen.add_macro("KERNEL_LEN", str(kernel_len))
+    data_gen.add_macro("K_NUM", str(k_num))
+    data_gen.add_macro("STRIDE", str(stride))
+    data_gen.add_macro("PAD", str(pad))
 
-    header_gen.add_define("INPUT_LEN", str(input_len))
-    header_gen.add_define("INPUT_CH", str(input_ch))
-    header_gen.add_define("KERNEL_LEN", str(kernel_len))
-    header_gen.add_define("F_NUM", str(f_num))
-    header_gen.add_define("STRIDE", str(stride))
-    header_gen.add_define("PAD", str(pad))
+    data_gen.add_input_matrix("A", A)
+    data_gen.add_input_matrix("F", F)
+    data_gen.add_output_matrix("R", R)
 
-    header_gen.add_input_matrix("A", A)
-    header_gen.add_input_matrix("F", F)
-    header_gen.add_input_matrix("B", B)
-    header_gen.add_output_matrix("R", R)
-
-    header_gen.write_header(out_dir, data_header)
-    print("- generated header file in '" + out_dir + "/" + data_header + "'.")
+    data_gen.write_header(out_dir)
+    data_gen.write_source(out_dir)
 
 
 if __name__ == "__main__":
