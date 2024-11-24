@@ -67,7 +67,6 @@ VCD_MODE			?= 0 # QuestaSim-only - 0: no dumo, 1: dump always active, 2: dump tr
 MAX_CYCLES			?= 10000000
 FUSESOC_FLAGS		?=
 FUSESOC_ARGS		?=
-FUSESOC_ARGS		+= --VERILATOR_VERSION=$(VERILATOR_VERSION)
 
 # Flash file
 FLASHWRITE_FILE		?= $(FIRMWARE)
