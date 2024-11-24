@@ -24,3 +24,5 @@ transcript
 # Ctags
 tags
 
+# Python cache
+__pycache__/

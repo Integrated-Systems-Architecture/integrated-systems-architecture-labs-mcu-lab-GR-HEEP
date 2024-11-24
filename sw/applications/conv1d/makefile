@@ -11,7 +11,8 @@
 # ----- CONFIGURATION ----- #
 #############################
 
-KERNEL_PARAMS 		?= --in_len 8 --in_ch 4 --k_len 3 --f_num 2 --stride 1 --padding 0
+APP_PARAMS 		?= --in_len 8 --in_ch 4 --k_len 3 --k_num 2 --stride 1 --padding 0
+PYTHONPATH		+= :../../common
 
 #####################
 # ----- RULES ----- #
@@ -24,7 +25,7 @@ all: data.h
 # Generate data.h
 data.h: .force
 	@echo "## Generating data.h..."
-	python3 datagen.py $(KERNEL_PARAMS)
+	PYTHONPATH=$(PYTHONPATH) python3 datagen.py $(APP_PARAMS)
 
 # Dummy rule to force recompilation (because of parameters)
 .force:

@@ -1,3 +1,19 @@
+# Copyright 2024 Politecnico di Torino.
+# Copyright and related rights are licensed under the Solderpad Hardware
+# License, Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+# http://solderpad.org/licenses/SHL-2.0. Unless required by applicable law
+# or agreed to in writing, software, hardware and materials distributed under
+# this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
+# File: c_gen.py
+# Author(s):
+#   Michele Caon
+# Date: 22/11/2024
+# Description: Convert numpy data and other information to C arrays.
+
 # Write a C header file with array definitions for the input matrix, the output
 # matrix, and the instruction stream.
 
@@ -20,7 +36,10 @@ class CFileGen:
         attributes (List[str]): A list of C attributes to apply to the generated C arrays.
     """
     
-    def __init__(self) -> None:
+    def __init__(self, base_name: str) -> None:
+        self.header_file = f"{base_name}.h"
+        self.source_file = f"{base_name}.c"
+        self.comments = []
         self.binaries = []
         self.codes = []
         self.input_matrices = []
@@ -29,6 +48,10 @@ class CFileGen:
         self.macros_hex = []
         self.macros_raw = []
         self.attributes = []
+
+    # Add a comment
+    def add_comment(self, comment: str) -> None:
+        self.comments.append(('', 0, comment))
 
     # Add a new binary file
     def add_binary(self, name: str, file: str) -> None:
@@ -128,30 +151,65 @@ class CFileGen:
         # Determine the number of bits based on the dtype
         dtype: np.dtype = matrix.dtype
         num_bits = dtype.itemsize * 8
-        
+
         array_ctype = self.dtype_to_ctype(dtype)
         utype = self.signed2unsigned(dtype)
         matrix = matrix.astype(utype)
 
-        # Convert the signed array to 2's complement hexadecimal values
-        rows = []
-        for row in matrix:
-            hex_values = [f"{element:#0{2+num_bits//4}x}" for element in row]
-            rows.append(hex_values)
+        # Flatten the array in C (row-major) order
+        flat_array = matrix.flatten(order='C')
 
-        # Format the matrix
-        matrix_contents = f"{array_ctype} {name} [] "
+        # Convert the elements to 2's complement hexadecimal strings
+        hex_values = [f"{element:#0{2+num_bits//4}x}" for element in flat_array]
+
+        # Define a recursive function to generate the structure comments
+        def generate_structure_comments(array, index=0, indent_level=0, is_top_level=False):
+            lines = []
+            indent = '    ' * indent_level
+
+            if array.ndim == 1:
+                # Base case: 1D array
+                line = indent + '/* { */ ' + ', '.join(hex_values[index:index+array.size]) + ' /* } */'
+                index += array.size
+                lines.append(line)
+            else:
+                # Recursive case: Multi-dimensional array
+                num_subarrays = len(array)
+                # Add opening comment if not top-level
+                if not is_top_level:
+                    lines.append(indent + '/* { */')
+                for idx, subarray in enumerate(array):
+                    # Process subarray
+                    sub_lines, index = generate_structure_comments(
+                        subarray, index, indent_level + 1, is_top_level=False)
+                    lines.extend(sub_lines)
+                    # Add comma to the last line of sub_lines if not last subarray
+                    if idx < num_subarrays - 1:
+                        lines[-1] += ','
+                # Add closing comment if not top-level
+                if not is_top_level:
+                    lines.append(indent + '/* } */')
+                else:
+                    # At top level, add comma after each subarray except the last
+                    if idx < num_subarrays - 1:
+                        lines[-1] += ','
+            return lines, index
+
+        # Generate the lines with structure comments
+        lines, _ = generate_structure_comments(matrix, is_top_level=True)
+
+        # Build the final string
+        matrix_contents = f"{array_ctype} {name}[]"
         if len(self.attributes) > 0:
-            matrix_contents += f"__attribute__(({','.join(self.attributes)})) "
-        matrix_contents += '= {\n'
-        if len(rows) > 1:
-            matrix_contents += ',\n'.join([f"    {', '.join(row)}" for row in rows])
-        else:
-            matrix_contents += f"    {', '.join(rows[0])}"
+            matrix_contents += f" __attribute__(({','.join(self.attributes)}))"
+        matrix_contents += ' = {\n'
+        matrix_contents += '\n'.join(lines)
         matrix_contents += '\n};\n\n'
 
         return matrix_contents
-    
+
+
+    # Format code for C
     def format_code(self, code: str, name: str) -> str:
         # Format the array
         code_contents = f"uint32_t {name}[] "
@@ -169,11 +227,19 @@ class CFileGen:
 
     # Write the header file
     def gen_header(self, header_macro: str = None) -> str:
+
         if header_macro is not None:
+            header_contents = f"// Auto-generated by {os.path.basename(__file__)}\n\n"
             # Header guard
-            header_contents = f'#ifndef {header_macro}\n#define {header_macro}\n\n'    
+            header_contents += f'#ifndef {header_macro}\n#define {header_macro}\n\n'    
             # Include stdint.h
             header_contents += "#include <stdint.h>\n\n"
+
+        # Comments
+        if len(self.comments) > 0:
+            for name, value, comment in self.comments:
+                header_contents += f"// {comment}\n"
+            header_contents += '\n'
 
         # Macros
         if len(self.macros) > 0 or len(self.macros_hex) > 0 or len(self.macros_raw) > 0:
@@ -237,16 +303,16 @@ class CFileGen:
         if len(self.binaries) > 0:
             header_contents += "// Binary files\n"
             header_contents += "// ------------\n"
-            for name, file in self.binaries:
-                header_contents += self.format_binary(name, file)
+            for name, _ in self.binaries:
+                header_contents += f"extern uint32_t {name}[];\n"
             header_contents += '\n'
 
         # Write code arrays
         if len(self.codes) > 0:
             header_contents += "// Code\n"
             header_contents += "// ----\n"
-            for name, code in self.codes:
-                header_contents += self.format_code(code, name)
+            for name, _ in self.codes:
+                header_contents += f"extern uint32_t {name}[];\n"
             header_contents += '\n'
 
         # Write input matrices
@@ -254,24 +320,73 @@ class CFileGen:
             header_contents += "// Input matrices\n"
             header_contents += "// --------------\n"
             for name, matrix in self.input_matrices:
-                header_contents += self.format_matrix(matrix, name)
+                dtype: np.dtype = matrix.dtype
+                array_ctype = self.dtype_to_ctype(dtype)
+                header_contents += f"extern {array_ctype} {name}[];\n"
+            header_contents += '\n'
 
         # Write output matrices
         if len(self.output_matrices) > 0:
             header_contents += "// Output matrices\n"
             header_contents += "// ---------------\n"
             for name, matrix in self.output_matrices:
-                header_contents += self.format_matrix(matrix, name)
+                dtype: np.dtype = matrix.dtype
+                array_ctype = self.dtype_to_ctype(dtype)
+                header_contents += f"extern {array_ctype} {name}[];\n"
+            header_contents += '\n'
 
         if header_macro is not None:
             header_contents += f"#endif // {header_macro}\n"
 
         # Return the header contents
         return header_contents
+    
+    # Write the source file
+    def gen_source(self) -> str:
+        source_contents = f"// Auto-generated by {os.path.basename(__file__)}\n\n"
 
-    def write_header(self, directory: str, file_name: str) -> None:
+        # Include stdint.h
+        source_contents += "#include <stdint.h>\n"
+
+        # Include the header file
+        source_contents += f"#include \"{self.header_file}\"\n\n"
+        
+        # Write binary files
+        if len(self.binaries) > 0:
+            source_contents += "// Binary files\n"
+            source_contents += "// ------------\n"
+            for name, file in self.binaries:
+                source_contents += self.format_binary(name, file)
+            source_contents += '\n'
+
+        # Write code arrays
+        if len(self.codes) > 0:
+            source_contents += "// Code\n"
+            source_contents += "// ----\n"
+            for name, code in self.codes:
+                source_contents += self.format_code(code, name)
+            source_contents += '\n'
+
+        # Write input matrices
+        if len(self.input_matrices) > 0:
+            source_contents += "// Input matrices\n"
+            source_contents += "// --------------\n"
+            for name, matrix in self.input_matrices:
+                source_contents += self.format_matrix(matrix, name)
+
+        # Write output matrices
+        if len(self.output_matrices) > 0:
+            source_contents += "// Output matrices\n"
+            source_contents += "// ---------------\n"
+            for name, matrix in self.output_matrices:
+                source_contents += self.format_matrix(matrix, name)
+
+        # Return the header contents
+        return source_contents
+
+    def write_header(self, directory: str) -> None:
         # Header file path
-        header_path = os.path.join(directory, file_name)
+        header_path = os.path.join(directory, self.header_file)
         header_base = os.path.basename(header_path)
         header_macro = header_base.upper().replace('.', '_') + '_'
 
@@ -279,6 +394,7 @@ class CFileGen:
         header_contents = self.gen_header(header_macro)
 
         # Write header file
+        print(f"Writing header file '{header_path}'...")
         with open(header_path, 'w') as header_file:
             header_file.write(header_contents)
 
@@ -289,24 +405,36 @@ class CFileGen:
         # Write header file
         file.write(header_contents)
 
+    def write_source(self, directory: str) -> None:
+        # Source file path
+        source_path = os.path.join(directory, self.source_file)
+
+        # Generate header
+        source_contents = self.gen_source()
+
+        # Write source file
+        print(f"Writing source file '{source_path}'...")
+        with open(source_path, 'w') as source_file:
+            source_file.write(source_contents)
+
 if __name__ == "__main__":
     # Check the number of arguments
     if len(sys.argv) < 3:
-        print("Usage: python c_gen.py <header_file> <bin_file> [<src_file>]")
+        print("Usage: python c_gen.py <base_name> <bin_file> [<src_file>]")
         sys.exit(1)
 
     # Parse arguments
-    header_file = sys.argv[1]
+    base_name = sys.argv[1]
     bin_file = sys.argv[2]
     src_file = sys.argv[3] if len(sys.argv) > 3 else None
 
     # Determine kernel name
-    kernel_name = os.path.splitext(os.path.basename(header_file))[0]
-    out_dir = os.path.dirname(header_file)
-    header_file = f"{kernel_name}.h"
+    kernel_name = os.path.splitext(os.path.basename(base_name))[0]
+    out_dir = os.path.dirname(base_name)
+    base_name = f"{kernel_name}.h"
 
     # Generate C header from input binary file
-    header_gen = CFileGen()
+    header_gen = CFileGen(kernel_name)
     header_gen.add_binary(kernel_name, bin_file)
 
     # Add macros from source file
@@ -315,5 +443,5 @@ if __name__ == "__main__":
         header_gen.add_macros_from_source(src_file)
 
     # Write header file
-    print(f"Writing header file '{os.path.join(out_dir, header_file)}'...")
-    header_gen.write_header(out_dir, header_file)
+    header_gen.write_header(out_dir)
+    header_gen.write_source(out_dir)
