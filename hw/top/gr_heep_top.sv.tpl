@@ -46,6 +46,10 @@ ${pad.x_heep_system_interface}
   obi_req_t  [DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req;
   obi_resp_t [DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_rsp;
 
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
+  // TODO: Remove the verilator lint_off pragmas when the signals are used
+
   // X-HEEP slave ports
   obi_req_t  [ExtXbarNmasterRnd-1:0] heep_slave_req;
   obi_resp_t [ExtXbarNmasterRnd-1:0] heep_slave_rsp;
@@ -75,6 +79,10 @@ ${pad.x_heep_system_interface}
   reg_req_t [AoSPCNum-1:0] ext_ao_peripheral_req;
   reg_rsp_t  [AoSPCNum-1:0] ext_ao_peripheral_resp;
   
+  // External peripherals select
+  logic     [LogExtPeriphNSlave-1:0] gr_heep_periph_select;
+  reg_req_t [ExtPeriphNSlaveRnd-1:0] gr_heep_peripheral_req;
+  reg_rsp_t [ExtPeriphNSlaveRnd-1:0] gr_heep_peripheral_rsp;
 
   // Pad controller
   reg_req_t pad_req;
@@ -255,10 +263,10 @@ ${pad.core_v_mini_mcu_bonding}
   gr_heep_peripherals u_gr_heep_peripherals (
     .clk_i (clk_i),
     .rst_ni (rst_nin_sync),
-    .gr_heep_slave_req_i(ext_slave_req[0]),
-    .gr_heep_slave_resp_o(ext_slave_resp[0]),
-    .gr_heep_peripheral_req_i(heep_peripheral_req),
-    .gr_heep_peripheral_rsp_o(heep_peripheral_rsp),
+    .gr_heep_slave_req_i(ext_slave_req),
+    .gr_heep_slave_resp_o(ext_slave_resp),
+    .gr_heep_peripheral_req_i(gr_heep_peripheral_req),
+    .gr_heep_peripheral_rsp_o(gr_heep_peripheral_rsp),
     .gr_heep_peripheral_int_o(ext_int_vector[0])
   );
 
@@ -317,7 +325,34 @@ ${pad.core_v_mini_mcu_bonding}
 
   // External peripherals bus
   // ------------------------
+  addr_decode #(
+      .NoIndices(gr_heep_pkg::ExtPeriphNSlaveRnd),
+      .NoRules(gr_heep_pkg::ExtPeriphNSlaveRnd),
+      .addr_t(logic [31:0]),
+      .rule_t(addr_map_rule_pkg::addr_map_rule_t)
+  ) u_gr_heep_perpheral_decoder (
+      .addr_i(heep_peripheral_req.addr),
+      .addr_map_i(gr_heep_pkg::ExtPeriphAddrRules),
+      .idx_o(gr_heep_periph_select),
+      .dec_valid_o(),
+      .dec_error_o(),
+      .en_default_idx_i(1'b0),
+      .default_idx_i('0)
+  );
 
+  reg_demux #(
+      .NoPorts(gr_heep_pkg::ExtPeriphNSlaveRnd),
+      .req_t  (reg_pkg::reg_req_t),
+      .rsp_t  (reg_pkg::reg_rsp_t)
+  ) u_gr_heep_reg_demux (
+      .clk_i,
+      .rst_ni,
+      .in_select_i(gr_heep_periph_select),
+      .in_req_i(heep_peripheral_req),
+      .in_rsp_o(heep_peripheral_rsp),
+      .out_req_o(gr_heep_peripheral_req),
+      .out_rsp_i(gr_heep_peripheral_rsp)
+  );
 
   // External interrupts
   // -------------------
