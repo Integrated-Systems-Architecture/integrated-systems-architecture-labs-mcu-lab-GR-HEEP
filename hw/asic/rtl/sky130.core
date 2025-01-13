@@ -1,0 +1,34 @@
+CAPI=2:
+
+# Copyright 2024 Politecnico di Torino.
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+#
+# File: sky130.core
+# Author: Luigi Giuffrida
+# Date: 09/11/2024
+# Description: corefile for sky130 lib
+
+name: google:skywater:sky130
+description: sky130 lib
+
+filesets:
+  rtl:
+    depend:
+    - openhwgroup.org:systems:core-v-mini-mcu
+    files:
+    - pad_cell_bypass_input.sv 
+    - pad_cell_bypass_output.sv 
+    - pad_cell_inout.sv 
+    - pad_cell_input.sv 
+    - pad_cell_output.sv 
+    - sky130_clk.sv 
+    - sram_wrapper.sv
+    file_type: systemVerilogSource
+
+targets:
+  default: &default
+    filesets:
+      - rtl
+
+
