@@ -228,6 +228,15 @@ endif
 	CDEFS=$(CDEFS) $(MAKE) -f $(XHEEP_MAKE) $(MAKECMDGOALS) LINK_FOLDER=$(LINK_FOLDER) ARCH=$(ARCH)
 	find sw/build/ -maxdepth 1 -type f -name "main.*" -exec cp '{}' $(BUILD_DIR)/sw/app/ \;
 
+## @section Backend
+
+## Synthesize gr-HEEP
+.PHONY: synthesis
+synthesis: $(GR_HEEP_GEN_LOCK)
+	$(FUSESOC) run --no-export --target asic_synthesis --tool design_compiler --build $(FUSESOC_FLAGS) polito:gr_heep:gr_heep \
+		$(FUSESOC_ARGS)
+
+
 ## Dummy target to force software rebuild
 $(PARAMS):
 	@echo "### Rebuilding software..."
