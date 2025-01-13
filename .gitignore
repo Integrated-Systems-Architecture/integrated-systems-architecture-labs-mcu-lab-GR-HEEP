@@ -21,3 +21,9 @@ transcript
 # Ctags
 tags
 
+# Sinthesis
+synthesis/
+
+# Log files
+*.log
+*.txt
