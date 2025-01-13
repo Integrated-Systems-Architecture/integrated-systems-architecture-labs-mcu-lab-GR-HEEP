@@ -14,6 +14,7 @@
 # Global configuration
 ROOT_DIR			:= $(realpath .)
 BUILD_DIR 			:= build
+SW_BUILD_DIR		:= sw/build
 
 # FUSESOC and Python values (default)
 ifndef CONDA_DEFAULT_ENV
@@ -63,10 +64,9 @@ LOG_LEVEL			?= LOG_NORMAL
 BOOT_MODE			?= force # jtag: wait for JTAG (DPI module), flash: boot from flash, force: load firmware into SRAM
 FIRMWARE			?= $(ROOT_DIR)/build/sw/app/main.hex
 VCD_MODE			?= 0 # QuestaSim-only - 0: no dumo, 1: dump always active, 2: dump triggered by GPIO 0
-MAX_CYCLES			?= 1200000
+MAX_CYCLES			?= 10000000
 FUSESOC_FLAGS		?=
 FUSESOC_ARGS		?=
-FUSESOC_ARGS		+= --VERILATOR_VERSION=$(VERILATOR_VERSION)
 
 # Flash file
 FLASHWRITE_FILE		?= $(FIRMWARE)
@@ -76,7 +76,8 @@ FUSESOC_BUILD_DIR			= $(shell find $(BUILD_DIR) -type d -name 'polito_gr_heep_gr
 QUESTA_SIM_DIR				= $(FUSESOC_BUILD_DIR)/sim-modelsim
 
 # Application spacific makefile
-APP_MAKE := $(wildcard sw/applications/$(PROJECT)/*akefile)
+APP_MAKE 	:= $(wildcard sw/applications/$(PROJECT)/*akefile)
+APP_PARAMS  ?=
 
 # Custom preprocessor definitions
 CDEFS ?=
@@ -125,7 +126,7 @@ all: gr-heep-gen
 ## X-HEEP MCU system
 .PHONY: mcu-gen
 mcu-gen: $(MCU_GEN_LOCK)
-$(MCU_GEN_LOCK): $(MCU_CFG) $(PAD_CFG) $(EXT_PAD_CFG) | $(BUILD_DIR)/
+$(MCU_GEN_LOCK): $(MCU_CFG_PERIPHERALS) $(PAD_CFG) $(EXT_PAD_CFG) | $(BUILD_DIR)/
 	@echo "### Building X-HEEP MCU..."
 	$(MAKE) -f $(XHEEP_MAKE) mcu-gen
 	touch $@
@@ -140,7 +141,10 @@ gr-heep-gen-force:
 ## Generate gr-HEEP files
 .PHONY: gr-heep-gen
 gr-heep-gen: $(GR_HEEP_GEN_LOCK)
-$(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK)
+$(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK) \
+		$(ROOT_DIR)/hw/pad-ring/pad_ring.sv.tpl $(ROOT_DIR)/tb/tb_util.svh.tpl \
+		hw/packages/gr_heep_pkg.sv.tpl hw/peripherals/gr_heep_peripherals.sv.tpl \
+		sw/external/lib/runtime/gr_heep.h.tpl | $(BUILD_DIR)/
 	@echo "### Generating gr-HEEP top and pad rings..."
 	python3 $(XHEEP_DIR)/util/mcu_gen.py $(MCU_GEN_OPTS) \
 		--outdir $(ROOT_DIR)/hw/top/ \
@@ -201,6 +205,7 @@ verilator-run: | check-firmware .verilator-check-params
 		--boot_mode=$(BOOT_MODE) \
 		--max_cycles=$(MAX_CYCLES) \
 		--trace=true \
+		--no_err \
 		$(FUSESOC_ARGS)
 	cat $(FUSESOC_BUILD_DIR)/sim-verilator/uart.log
 
@@ -216,17 +221,23 @@ verilator-opt: | check-firmware .verilator-check-params
 		$(FUSESOC_ARGS)
 	cat $(FUSESOC_BUILD_DIR)/sim-verilator/uart.log
 
+# Open dumped waveform with GTKWave
+.PHONY: verilator-waves
+verilator-waves: $(BUILD_DIR)/sim-common/waves.fst | .check-gtkwave
+	gtkwave -a tb/misc/verilator-waves.gtkw $<
+
 ## @section Software
 
 ## gr-HEEP applications
 .PHONY: app
 app: $(GR_HEEP_GEN_LOCK) | $(BUILD_DIR)/sw/app/
 ifneq ($(APP_MAKE),)
+	@echo "### Calling application-specific makefile '$(APP_MAKE)'..."
 	$(MAKE) -C $(dir $(APP_MAKE))
 endif
 	@echo "### Building application for SRAM execution with GCC compiler..."
 	CDEFS=$(CDEFS) $(MAKE) -f $(XHEEP_MAKE) $(MAKECMDGOALS) LINK_FOLDER=$(LINK_FOLDER) ARCH=$(ARCH)
-	find sw/build/ -maxdepth 1 -type f -name "main.*" -exec cp '{}' $(BUILD_DIR)/sw/app/ \;
+	find $(SW_BUILD_DIR)/ -maxdepth 1 -type f -name "main.*" -exec cp '{}' $(BUILD_DIR)/sw/app/ \;
 
 ## @section Backend
 
@@ -269,6 +280,13 @@ check-firmware:
 .check-fusesoc:
 	@if [ ! `which fusesoc` ]; then \
 	printf -- "### ERROR: 'fusesoc' is not in PATH. Is the correct conda environment active?\n" >&2; \
+	exit 1; fi
+
+# Check if GTKWave is available
+.PHONY: .check-gtkwave
+.check-gtkwave:
+	@if [ ! `which gtkwave` ]; then \
+	printf -- "### ERROR: 'gtkwave' is not in PATH. Is the correct conda environment active?\n" >&2; \
 	exit 1; fi
 
 ## Check simulation parameters

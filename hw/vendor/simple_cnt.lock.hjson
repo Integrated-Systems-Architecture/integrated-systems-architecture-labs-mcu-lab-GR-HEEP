@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/Integrated-Systems-Architecture/simple_cnt.git
-    rev: c37406f2fa46fc8bf6ef38dcb82fbe8570047213
+    rev: b5e95838dff8429086c9dbc487e198bbb98156aa
   }
 }

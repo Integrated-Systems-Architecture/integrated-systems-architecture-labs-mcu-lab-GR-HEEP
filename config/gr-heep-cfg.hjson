@@ -10,9 +10,9 @@
 {
     // CORE-V-MINI-MCU features
     cpu_features: {
-        corev_pulp: true,
-        corev_xif: true,
-        fpu: true,
+        corev_pulp: false,
+        corev_xif: false,
+        fpu: false,
         riscv_zfinx: false,
     },
 
@@ -23,31 +23,29 @@
             offset:    "0x00000000",
             length:    "0x00010000",
         },
-    //     slave_1: {
-    //         offset:    "0x00010000",
-    //         length:    "0x00010000",
-    //     },
+        conv1d_accel: {
+            offset:    "0x00010000",
+            length:    "0x00010000",
+        },
     },
 
     // External peripherals
     ext_periph: {
         simple_cnt: {
+            // Offset from the base address of the memory space reserved for
+            // external peripherals, as defined in
             offset: "0x0000000",
+
             length: "0x0001000",
         },
-    //     peripheral_1: {
-    //         offset: "0x00001000",
-    //         length: "0x00001000",
-    //     },
-    //     peripheral_2: {
-    //         offset: "0x00002000",
-    //         length: "0x00001000",
-    //     },
+        conv1d_accel: {
+            offset: "0x00001000",
+            length: "0x00001000",
+        },
     },
 
     // ao_spc_num: 1,
 
-    external_interrupts: 1,
-
+    external_interrupts: 1, // increment this number for each new interrupt
 }
 

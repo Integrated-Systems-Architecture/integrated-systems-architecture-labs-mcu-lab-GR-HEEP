@@ -8,28 +8,20 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 //
-// File: simple_cnt.vendor.hjson
+// File: ext_irq.h
 // Author(s):
-//   Luigi Giuffrida
+//   Michele Caon
 // Date: 10/11/2024
-// Description: Vendor file for the example counter peripheral
+// Description: Interrupt handling routines for GR-HEEP
 
-{
-  # Name and target directory for the vendored IP
-  name: "simple_cnt",
-  target_dir: "simple_cnt",
+#ifndef EXT_IRQ_H_
+#define EXT_IRQ_H_
 
-  # Upstream repository information
-  upstream: {
-    url: "https://github.com/Integrated-Systems-Architecture/simple_cnt.git", // URL of the upstream repository
-    rev: "v1.2.1", // Revision of the upstream repository (branch, tag or commit)
-  },
+/**
+ * @brief External interrupt initialization.
+ * 
+ */
+void ext_irq_init();
 
-  # Files to exclude from the local copy
-  exclude_from_upstream: [
-    "tb",
-    "util",
-    "fusesoc.conf",
-    "makefile",
-  ],
-}
+#endif /* EXT_IRQ_H_ */
+

@@ -11,7 +11,7 @@ CAPI=2:
 # ATTENTION: This file is just a template. It is not meant to be used as it is.
 #            Please replace all references to "GR-HEEP" with the name of your project.
 
-name: polito:gr_heep:gr_heep:0.1
+name: polito:gr_heep:gr_heep:0.1.3
 description: Top-level file for GR-HEEP
 
 filesets:
@@ -106,6 +106,13 @@ scripts:
     - python
     - ../../../hw/vendor/x-heep/scripts/sim/modelsim/patch_modelsim_Makefile.py
 
+  # Copy waveforms in common directory
+  prepare_dirs:
+    cmd: ["mkdir", "-p", "../../sim-common"]
+
+  copy_waves:
+    cmd: ["ln", "-srf", "logs/waves.fst", "../../sim-common/waves.fst"]
+
 targets:
   default: &default
     filesets:
@@ -154,12 +161,17 @@ targets:
       pre_build:
       - tool_modelsim? (pre_build_uartdpi)
       - tool_modelsim? (pre_patch_modelsim_Makefile)
+      pre_run:
+      - tool_verilator ? (prepare_dirs)
+      post_run:
+      - tool_verilator ? (copy_waves)
     parameters_append:
     - boot_mode
     - firmware
-    - log_level
+    - tool_verilator ? (log_level)
     - max_cycles
     - trace
+    - tool_verilator ? (no_err)
     - RTL_SIMULATION=true
     tools:
       modelsim:

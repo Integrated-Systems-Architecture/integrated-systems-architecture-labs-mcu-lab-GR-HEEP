@@ -106,16 +106,58 @@ task tb_loadHEX;
     end
   end
   for (i=65536; i < 98304; i = i + 4) begin
-    if (((i/4) & 1) == 0) begin
-      w_addr = ((i/4) >> 1) % 4096;
+    if (((i/4) & 0) == 0) begin
+      w_addr = ((i/4) >> 0) % 8192;
       tb_writetoSram2(w_addr, stimuli[i+3], stimuli[i+2],
                                           stimuli[i+1], stimuli[i]);
     end
   end
-  for (i=65536; i < 98304; i = i + 4) begin
+  for (i=98304; i < 131072; i = i + 4) begin
+    if (((i/4) & 0) == 0) begin
+      w_addr = ((i/4) >> 0) % 8192;
+      tb_writetoSram3(w_addr, stimuli[i+3], stimuli[i+2],
+                                          stimuli[i+1], stimuli[i]);
+    end
+  end
+  for (i=131072; i < 163840; i = i + 4) begin
+    if (((i/4) & 0) == 0) begin
+      w_addr = ((i/4) >> 0) % 8192;
+      tb_writetoSram4(w_addr, stimuli[i+3], stimuli[i+2],
+                                          stimuli[i+1], stimuli[i]);
+    end
+  end
+  for (i=163840; i < 196608; i = i + 4) begin
+    if (((i/4) & 0) == 0) begin
+      w_addr = ((i/4) >> 0) % 8192;
+      tb_writetoSram5(w_addr, stimuli[i+3], stimuli[i+2],
+                                          stimuli[i+1], stimuli[i]);
+    end
+  end
+  for (i=196608; i < 229376; i = i + 4) begin
+    if (((i/4) & 0) == 0) begin
+      w_addr = ((i/4) >> 0) % 8192;
+      tb_writetoSram6(w_addr, stimuli[i+3], stimuli[i+2],
+                                          stimuli[i+1], stimuli[i]);
+    end
+  end
+  for (i=229376; i < 262144; i = i + 4) begin
+    if (((i/4) & 0) == 0) begin
+      w_addr = ((i/4) >> 0) % 8192;
+      tb_writetoSram7(w_addr, stimuli[i+3], stimuli[i+2],
+                                          stimuli[i+1], stimuli[i]);
+    end
+  end
+  for (i=262144; i < 294912; i = i + 4) begin
+    if (((i/4) & 1) == 0) begin
+      w_addr = ((i/4) >> 1) % 4096;
+      tb_writetoSram8(w_addr, stimuli[i+3], stimuli[i+2],
+                                          stimuli[i+1], stimuli[i]);
+    end
+  end
+  for (i=262144; i < 294912; i = i + 4) begin
     if (((i/4) & 1) == 1) begin
       w_addr = ((i/4) >> 1) % 4096;
-      tb_writetoSram3(w_addr, stimuli[i+3], stimuli[i+2],
+      tb_writetoSram9(w_addr, stimuli[i+3], stimuli[i+2],
                                           stimuli[i+1], stimuli[i]);
     end
   end
@@ -126,6 +168,12 @@ task tb_loadHEX;
   tb_releaseSram1();
   tb_releaseSram2();
   tb_releaseSram3();
+  tb_releaseSram4();
+  tb_releaseSram5();
+  tb_releaseSram6();
+  tb_releaseSram7();
+  tb_releaseSram8();
+  tb_releaseSram9();
 
 `endif // VERILATOR
 
@@ -201,6 +249,108 @@ task tb_writetoSram3;
   };
 `endif
 endtask
+task tb_writetoSram4;
+  input int addr;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
+`ifdef VCS
+  force `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram4_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram4_i.tc_ram_i.sram[addr];
+`else
+  `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram4_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+`endif
+endtask
+task tb_writetoSram5;
+  input int addr;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
+`ifdef VCS
+  force `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram5_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram5_i.tc_ram_i.sram[addr];
+`else
+  `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram5_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+`endif
+endtask
+task tb_writetoSram6;
+  input int addr;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
+`ifdef VCS
+  force `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram6_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram6_i.tc_ram_i.sram[addr];
+`else
+  `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram6_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+`endif
+endtask
+task tb_writetoSram7;
+  input int addr;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
+`ifdef VCS
+  force `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram7_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram7_i.tc_ram_i.sram[addr];
+`else
+  `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram7_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+`endif
+endtask
+task tb_writetoSram8;
+  input int addr;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
+`ifdef VCS
+  force `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram8_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram8_i.tc_ram_i.sram[addr];
+`else
+  `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram8_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+`endif
+endtask
+task tb_writetoSram9;
+  input int addr;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
+`ifdef VCS
+  force `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram9_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram9_i.tc_ram_i.sram[addr];
+`else
+  `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram9_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+`endif
+endtask
 
 `ifndef VERILATOR
 
@@ -215,6 +365,24 @@ task tb_releaseSram2;
 endtask
 task tb_releaseSram3;
   release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram3_i.tc_ram_i.sram;
+endtask
+task tb_releaseSram4;
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram4_i.tc_ram_i.sram;
+endtask
+task tb_releaseSram5;
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram5_i.tc_ram_i.sram;
+endtask
+task tb_releaseSram6;
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram6_i.tc_ram_i.sram;
+endtask
+task tb_releaseSram7;
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram7_i.tc_ram_i.sram;
+endtask
+task tb_releaseSram8;
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram8_i.tc_ram_i.sram;
+endtask
+task tb_releaseSram9;
+  release `TOP.u_core_v_mini_mcu.memory_subsystem_i.ram9_i.tc_ram_i.sram;
 endtask
 
 `endif // VERILATOR
